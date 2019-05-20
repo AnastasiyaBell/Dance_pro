@@ -111,7 +111,7 @@ with tf.Session() as sess:
     best_loss = l
     hooks['saver'].save(os.path.join(checkpoint_path, 'best'))
     while stop_impatience < STOP_PATIENCE:
-        sess.run(hooks['training_init_op'])
+        sess.run(sess, hooks['training_init_op'])
         while True:
             try:
                 _, l, acc, perpl = sess.run(
@@ -131,7 +131,7 @@ with tf.Session() as sess:
         log(epoch=epoch, loss=l, accuracy=acc, perplexity=perpl, dataset='valid')
         if l < best_loss:
             lr_impatience, stop_impatience = 0, 0
-            hooks['saver'].save(os.path.join(checkpoint_path, 'best'))
+            hooks['saver'].save(sess, os.path.join(checkpoint_path, 'best'))
         else:
             lr_impatience += 1
             stop_impatience += 1
