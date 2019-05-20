@@ -8,7 +8,7 @@ def tf_accuracy(preds, labels):
     return tf.reduce_sum(
         tf.to_float(
             tf.equal(
-                tf.argmax(labels, axis=-1, output_type=tf.int32),
+                tf.argmax(preds, axis=-1, output_type=tf.int32),
                 labels
             )
         )
