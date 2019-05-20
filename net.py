@@ -155,15 +155,15 @@ def build_net(x, net_data, stddev, release):
     fc7b = tf.Variable(tf.zeros([4096]))
     fc7 = tf.nn.relu_layer(fc6, fc7W, fc7b)
 
-    fc8W = tf.Variable(tf.truncated_normal([4096, 1000], stddev=stddev))
-    fc8b = tf.Variable(tf.zeros([1000]))
+    fc8W = tf.Variable(tf.truncated_normal([4096, 10], stddev=stddev))
+    fc8b = tf.Variable(tf.zeros([10]))
     fc8 = tf.nn.xw_plus_b(fc7, fc8W, fc8b)
 
     return fc8
 
 
 def get_predictions_and_metrics(logits, labels, labels_oh):
-    loss = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels_oh)
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels_oh))
     preds = tf.nn.softmax(logits)
     accuracy = tf_accuracy(logits, labels)
     perplexity = tf_perplexity(preds)

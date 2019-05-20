@@ -52,8 +52,9 @@ def select_file_names_for_work(file_names_in_dataset, N):
 
 def prepend_path(file_names_in_dataset, path):
     for dance, loffn in file_names_in_dataset.items():
-        file_names_in_dataset[dance] = list(map(lambda x: os.path.join(path, dance, x), sorted(loffn)))
-    return file_names_in_dataset
+        n = len(loffn)
+        for i in range(n):
+            loffn[i] = os.path.join(path, dance, loffn[i])
 
 
 def _parse_function(filename, label):
@@ -95,23 +96,23 @@ def filter_dataset(file_names_in_dataset):
 
 
 def select_train_valid_test_file_names(dataset_path, train_path, valid_path, test_path):
-    train_file_names = get_file_names_in_dataset(
-        os.path.join(dataset_path, train_path)
-    )
-    print("*" * 20 + "\nfiltering file names for train dataset")
+    train_path = os.path.join(dataset_path, train_path)
+    train_file_names = get_file_names_in_dataset(train_path)
+    print(("*"*20 + '\n') * 2 + "filtering file names for train dataset")
     train_file_names = filter_dataset(train_file_names)
+    prepend_path(train_file_names, train_path)
 
-    valid_file_names = get_file_names_in_dataset(
-        os.path.join(dataset_path, valid_path)
-    )
-    print("*" * 20 + "\nfiltering file names for validation dataset")
+    valid_path = os.path.join(dataset_path, valid_path)
+    valid_file_names = get_file_names_in_dataset(valid_path)
+    print(("*"*20 + '\n') * 2 + "filtering file names for validation dataset")
     valid_file_names = filter_dataset(valid_file_names)
+    prepend_path(valid_file_names, valid_path)
 
-    test_file_names = get_file_names_in_dataset(
-        os.path.join(dataset_path, test_path)
-    )
-    print("*" * 20 + "\nfiltering file names for test dataset")
+    test_path = os.path.join(dataset_path, test_path)
+    test_file_names = get_file_names_in_dataset(test_path)
+    print(("*"*20 + '\n') * 2 + "filtering file names for test dataset")
     test_file_names = filter_dataset(test_file_names)
+    prepend_path(test_file_names, test_path)
 
     file_names = {
         'train': train_file_names,
@@ -120,5 +121,3 @@ def select_train_valid_test_file_names(dataset_path, train_path, valid_path, tes
     }
 
     return file_names
-
-

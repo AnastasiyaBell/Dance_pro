@@ -21,9 +21,9 @@ args = parser.parse_args()
 
 hostname = socket.gethostname()
 if hostname == 'aenima':
-    DATASET_PATH = '~/datasets/letsdance_alexnet'
+    DATASET_PATH = os.path.expanduser('~/datasets/letsdance_alexnet')
 elif hostname == 'lateralus':
-    DATASET_PATH = '/media/anton/DATA/letsdance_alexnet'
+    DATASET_PATH = os.path.expanduser('~/datasets/letsdance_alexnet')
 else:
     raise ValueError("The script is run on unknown device. "
                      "Can not find dataset. Please specify dataset "
@@ -105,7 +105,7 @@ lr = INIT_LEARNING_RATE
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    l, acc, perpl = test('valid')
+    l, acc, perpl = test('valid', hooks)
     print('EPOCH {} | step {} | loss {:.4} | accuracy {:.4} | perplexity {:.4}'.format(epoch, step, l, acc, perpl))
     log(epoch=epoch, loss=l, accuracy=acc, perplexity=perpl, dataset='valid')
     best_loss = l
@@ -126,7 +126,7 @@ with tf.Session() as sess:
             except tf.errors.OutOfRangeError:
                 break
         epoch += 1
-        l, acc, perpl = test('valid')
+        l, acc, perpl = test('valid', hooks)
         print('EPOCH {} | step {} | loss {:.4} | accuracy {:.4} | perplexity {:.4}'.format(epoch, step, l, acc, perpl))
         log(epoch=epoch, loss=l, accuracy=acc, perplexity=perpl, dataset='valid')
         if l < best_loss:
