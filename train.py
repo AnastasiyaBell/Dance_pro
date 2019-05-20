@@ -1,13 +1,59 @@
 import os
+import socket
+import argparse
 
 import tensorflow as tf
 
+import dataset
+import net
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--release",
+    "-r",
+    help="If specified all network weights are being trained. "
+         "Otherwise only last to layers are training.",
+    action="store_true",
+)
+args = parser.parse_args()
+
+
+hostname = socket.gethostname()
+if hostname == 'aenima':
+    DATASET_PATH = '~/datasets/letsdance_alexnet'
+elif hostname == 'lateralus':
+    DATASET_PATH = '/media/anton/DATA/letsdance_alexnet'
+else:
+    raise ValueError("The script is run on unknown device. "
+                     "Can not find dataset. Please specify dataset "
+                     "path for your device in script "
+                     "{} in variable PATH".format(__file__))
+
+TRAIN_PATH = "letsdance_split/train"
+VALID_PATH = "letsdance_split/validation"
+TEST_PATH = "letsdance_split/test"
 
 LEARNING_RATE_PATIENCE = 10
 STOP_PATIENCE = 20
 STEP_PERIOD = 100
 INIT_LEARNING_RATE = 0.01
 DECAY = 0.1
+
+REG_RATE = 5e-4
+STDDEV = 0.005
+
+file_names = dataset.select_train_valid_test_file_names(
+    DATASET_PATH,
+    TRAIN_PATH,
+    VALID_PATH,
+    TEST_PATH,
+)
+
+BATCH_SIZE = 30
+NUM_DANCES = len(file_names['train'])
+
+hooks = net.build_graph(file_names, BATCH_SIZE, NUM_DANCES, REG_RATE, STDDEV, args.release)
 
 train_results_path = 'results/train'
 valid_results_path = 'results/valid'
@@ -32,13 +78,13 @@ def log(dataset='train', step=None, epoch=None, **kwargs):
                 f.write('{} {}\n'.format(first_value, v))
 
 
-def test(dataset):
-    init_op = validation_init_op if dataset == 'valid' else test_init_op
+def test(dataset, hooks):
+    init_op = hooks['validation_init_op'] if dataset == 'valid' else hooks['test_init_op']
     sess.run(init_op)
     count, accumulated_loss, accumulated_acc, accumulated_perpl = 0, 0, 0, 0
     while True:
         try:
-            l, acc, perpl = sess.run([loss, accuracy, perplexity], feed_dict={dropout_rate: 0.})
+            l, acc, perpl = sess.run([hooks['loss'], hooks['accuracy'], hooks['perplexity']])
             accumulated_loss += l
             accumulated_acc += acc
             accumulated_perpl += perpl
@@ -63,14 +109,14 @@ with tf.Session() as sess:
     print('EPOCH {} | step {} | loss {:.4} | accuracy {:.4} | perplexity {:.4}'.format(epoch, step, l, acc, perpl))
     log(epoch=epoch, loss=l, accuracy=acc, perplexity=perpl, dataset='valid')
     best_loss = l
-    saver.save(os.path.join(checkpoint_path, 'best'))
+    hooks['saver'].save(os.path.join(checkpoint_path, 'best'))
     while stop_impatience < STOP_PATIENCE:
-        sess.run(training_init_op)
+        sess.run(hooks['training_init_op'])
         while True:
             try:
                 _, l, acc, perpl = sess.run(
-                    [train_op, loss, accuracy, perplexity],
-                    feed_dict={learning_rate: lr, dropout_rate: 0.5}
+                    [hooks['train_op'], hooks['loss'], hooks['accuracy'], hooks['perplexity']],
+                    feed_dict={hooks['learning_rate']: lr}
                 )
                 step += 1
                 if STEP_PERIOD is not None:
@@ -85,7 +131,7 @@ with tf.Session() as sess:
         log(epoch=epoch, loss=l, accuracy=acc, perplexity=perpl, dataset='valid')
         if l < best_loss:
             lr_impatience, stop_impatience = 0, 0
-            saver.save(os.path.join(checkpoint_path, 'best'))
+            hooks['saver'].save(os.path.join(checkpoint_path, 'best'))
         else:
             lr_impatience += 1
             stop_impatience += 1
@@ -93,5 +139,8 @@ with tf.Session() as sess:
             lr *= DECAY
     l, acc, perpl = test('test')
     log(loss=l, accuracy=acc, perplexity=perpl, dataset='test')
-    print('Testing! EPOCH {} | step {} | loss {:.4} | accuracy {:.4} | perplexity {:.4}'.format(epoch, step, l, acc,
-                                                                                                perpl))
+    print(
+        'Testing! EPOCH {} | step {} | loss {:.4} | accuracy {:.4} | perplexity {:.4}'.format(
+            epoch, step, l, acc, perpl
+        )
+    )
