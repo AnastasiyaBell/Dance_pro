@@ -109,7 +109,7 @@ with tf.Session() as sess:
     print('EPOCH {} | step {} | loss {:.4} | accuracy {:.4} | perplexity {:.4}'.format(epoch, step, l, acc, perpl))
     log(epoch=epoch, loss=l, accuracy=acc, perplexity=perpl, dataset='valid')
     best_loss = l
-    hooks['saver'].save(os.path.join(checkpoint_path, 'best'))
+    hooks['saver'].save(sess, os.path.join(checkpoint_path, 'best'))
     while stop_impatience < STOP_PATIENCE:
         sess.run(sess, hooks['training_init_op'])
         while True:
