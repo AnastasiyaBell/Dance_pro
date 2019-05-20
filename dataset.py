@@ -60,6 +60,13 @@ def prepend_path(file_names_in_dataset, path):
 def _parse_function(filename, label):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_jpeg(image_string)
+    last_dim = tf.shape(image_decoded)[-1]
+    greyscale = tf.equal(last_dim, 1)
+    image_decoded = tf.cond(
+        greyscale,
+        true_fn=lambda: tf.tile(image_decoded, [1, 1, 3]),
+        false_fn=lambda: image_decoded,
+    )
     return tf.image.resize_images(image_decoded, (227, 227)), label
 
 
