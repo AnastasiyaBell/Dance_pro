@@ -61,7 +61,7 @@ def _parse_function(filename, label):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_jpeg(image_string)
     # image_resized = tf.image.resize_images(image_decoded, [28, 28])
-    return tf.image.resize_images(image_decoded, (224, 224)), label
+    return tf.image.resize_images(image_decoded, (227, 227)), label
 
 
 def build_dataset(file_names_for_dataset, batch_size, num_dances):
