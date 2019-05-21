@@ -15,8 +15,8 @@ def tf_accuracy(preds, labels):
     ) / tf.to_float(tf.shape(labels)[0])
 
 
-def tf_perplexity(preds):
-    log_preds = tf.log(preds)
+def tf_perplexity(preds, epsilon=1e-15):
+    log_preds = tf.log(preds+epsilon)
     inter = tf.exp(tf.reduce_sum((-preds * log_preds), axis=-1))
     return tf.reduce_mean(inter)
 
