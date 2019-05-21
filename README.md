@@ -10,4 +10,5 @@ To start training execute command
 python3 train.py
 ```
 
-Dataset is available by link https://drive.google.com/open?id=1js6AyalTk6i2CYbNL2WKNTiOBFxSwlQL
+Dataset is available by link https://drive.google.com/open?id=1js6AyalTk6i2CYbNL2WKNTiOBFxSwlQL .
+It can be stored anywhere but you will have to add DATASET_PATH  value for your machine.
