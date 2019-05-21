@@ -24,6 +24,8 @@ if hostname == 'aenima':
     DATASET_PATH = os.path.expanduser('~/datasets/letsdance_alexnet')
 elif hostname == 'lateralus':
     DATASET_PATH = os.path.expanduser('~/datasets/letsdance_alexnet')
+elif hostname == 'nast-X550LB':
+    DATASET_PATH = os.path.expanduser('~/datasets/letsdance_alexnet')
 else:
     raise ValueError("The script is run on unknown device. "
                      "Can not find dataset. Please specify dataset "
